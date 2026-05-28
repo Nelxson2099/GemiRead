@@ -1,0 +1,207 @@
+:root {
+  /* Minimalist / Light Mode Tokens (Crystal clear) */
+  --bg-color-light: #f8fafc;
+  --card-bg-light: #ffffff;
+  --text-primary-light: #0f172a;
+  --text-secondary-light: #64748b;
+  --accent-light: #3b82f6;
+  --accent-glow-light: rgba(59, 130, 246, 0.4);
+  --border-light: #e2e8f0;
+
+  /* Dark / Cyber Mode Tokens (Neon tech) */
+  --bg-color-dark: #09090b;
+  --card-bg-dark: #18181b;
+  --text-primary-dark: #fafafa;
+  --text-secondary-dark: #a1a1aa;
+  --accent-dark: #06b6d4; /* Cyan/Neon */
+  --accent-glow-dark: rgba(6, 182, 212, 0.5);
+  --border-dark: #27272a;
+
+  --transition-speed: 0.4s;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  width: 340px;
+  height: 420px;
+  transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+}
+
+/* Theme Classes */
+body.theme-light {
+  background-color: var(--bg-color-light);
+  color: var(--text-primary-light);
+}
+
+body.theme-dark {
+  background-color: var(--bg-color-dark);
+  color: var(--text-primary-dark);
+}
+
+.container {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+header h1 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+/* Micro-interaction: Theme button */
+.icon-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 50%;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color var(--transition-speed);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn:active {
+  transform: scale(0.9);
+}
+
+body.theme-light .icon-btn { color: var(--text-primary-light); }
+body.theme-dark .icon-btn { color: var(--text-primary-dark); }
+body.theme-light .icon-btn:hover { background-color: var(--border-light); }
+body.theme-dark .icon-btn:hover { background-color: var(--border-dark); }
+
+/* Card Styling */
+.stats-card {
+  text-align: center;
+  padding: 35px 20px;
+  border-radius: 24px;
+  margin-bottom: 40px;
+  transition: all var(--transition-speed) ease;
+  border: 1px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+body.theme-light .stats-card {
+  background-color: var(--card-bg-light);
+  border-color: var(--border-light);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+}
+
+body.theme-dark .stats-card {
+  background-color: var(--card-bg-dark);
+  border-color: var(--border-dark);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.stats-title {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin: 0 0 15px 0;
+  font-weight: 600;
+}
+
+body.theme-light .stats-title { color: var(--text-secondary-light); }
+body.theme-dark .stats-title { color: var(--text-secondary-dark); }
+
+.pages-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 20px;
+}
+
+.counter {
+  font-size: 4.5rem;
+  font-weight: 800;
+  line-height: 1;
+  transition: text-shadow var(--transition-speed);
+}
+
+/* Glowing effect for numbers */
+body.theme-light .counter {
+  color: var(--accent-light);
+  text-shadow: 0 0 30px var(--accent-glow-light);
+}
+
+body.theme-dark .counter {
+  color: var(--accent-dark);
+  text-shadow: 0 0 30px var(--accent-glow-dark);
+}
+
+.pages-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.words-detail {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+body.theme-light .words-detail { color: var(--text-secondary-light); }
+body.theme-dark .words-detail { color: var(--text-secondary-dark); }
+
+/* Progress Bar */
+.progress-section {
+  margin-top: auto;
+  margin-bottom: 10px;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+body.theme-light .progress-header { color: var(--text-secondary-light); }
+body.theme-dark .progress-header { color: var(--text-secondary-dark); }
+
+.progress-bar-container {
+  width: 100%;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+  position: relative;
+}
+
+body.theme-light .progress-bar-container { background-color: var(--border-light); }
+body.theme-dark .progress-bar-container { background-color: var(--border-dark); }
+
+/* Motion storytelling: Smooth liquid-like progress */
+.progress-bar-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 5px;
+  transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body.theme-light .progress-bar-fill {
+  background: linear-gradient(90deg, var(--accent-light), #60a5fa);
+  box-shadow: 0 0 15px var(--accent-glow-light);
+}
+
+body.theme-dark .progress-bar-fill {
+  background: linear-gradient(90deg, var(--accent-dark), #22d3ee);
+  box-shadow: 0 0 15px var(--accent-glow-dark);
+}

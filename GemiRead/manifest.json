@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "GemiRead",
+  "version": "1.0",
+  "description": "Transforma tus conversaciones con IA en métricas de lectura activa.",
+  "permissions": ["storage"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://gemini.google.com/*",
+        "https://chatgpt.com/*",
+        "https://claude.ai/*",
+        "https://chat.deepseek.com/*",
+        "https://www.perplexity.ai/*",
+        "https://copilot.microsoft.com/*",
+        "https://chat.qwenlm.ai/*",
+        "https://www.meta.ai/*",
+        "https://huggingface.co/chat/*"
+      ],
+      "js": ["content.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "GemiRead Progress"
+  },
+  "icons": {
+    "16": "assets/icon-16.png",
+    "48": "assets/icon-48.png",
+    "128": "assets/icon-128.png"
+  }
+}
