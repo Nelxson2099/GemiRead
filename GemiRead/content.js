@@ -5,6 +5,10 @@
 let lastTotalWords = 0;
 let lastKnownPath = window.location.pathname;
 
+// Ventana de tiempo durante la cual ignoramos los incrementos de palabras
+// Esto sirve para omitir la carga del historial al abrir un chat viejo.
+let ignoreUntil = Date.now() + 3500;
+
 function countWords(text) {
   if (!text) return 0;
   // Cuenta palabras reales, ignorando espacios múltiples
@@ -26,24 +30,41 @@ function getChatTotalWords() {
 }
 
 function checkWordDelta() {
-  // Si cambia la URL (ej. nuevo chat), reiniciamos el contador local
+  const currentTotalWords = getChatTotalWords();
+
+  // Si cambia la URL, verificamos si es un chat nuevo o una continuación
   if (window.location.pathname !== lastKnownPath) {
-    lastTotalWords = 0;
     lastKnownPath = window.location.pathname;
+    
+    // Si la cantidad de palabras cayó drásticamente, asumimos que el chat se limpió (ej. navegamos a otro chat)
+    if (currentTotalWords < lastTotalWords * 0.5 || currentTotalWords < 50) {
+      ignoreUntil = Date.now() + 3500;
+    }
   }
 
-  const currentTotalWords = getChatTotalWords();
-  
-  // Si hay nuevas palabras generadas (por ti o por Gemini)
-  if (currentTotalWords > lastTotalWords) {
+  // Si el DOM tiene muy pocas palabras (chat vacío o cargando), extendemos la ventana de ignorar
+  if (currentTotalWords < 50) {
+    ignoreUntil = Date.now() + 3500;
+  }
+
+  // Si borramos el chat o la página se limpió sin cambiar de URL
+  if (currentTotalWords < lastTotalWords) {
+    lastTotalWords = currentTotalWords;
+    if (currentTotalWords < 50) {
+      ignoreUntil = Date.now() + 3500;
+    }
+  } else if (currentTotalWords > lastTotalWords) {
     const delta = currentTotalWords - lastTotalWords;
     lastTotalWords = currentTotalWords;
     
+    // Si estamos dentro de la ventana de ignorar, no enviamos el delta
+    // Esto previene que se sume todo el historial de un chat viejo
+    if (Date.now() < ignoreUntil) {
+      return;
+    }
+    
     // Enviamos solo el incremento al cerebro (background.js)
     chrome.runtime.sendMessage({ type: "ADD_WORDS", wordCount: delta });
-  } else if (currentTotalWords < lastTotalWords) {
-    // Si borramos el chat o fuimos a uno más corto, ajustamos la referencia
-    lastTotalWords = currentTotalWords;
   }
 }
 
