@@ -11,27 +11,43 @@
   <div class="container">
     <header>
       <h1>GemiRead</h1>
-      <button id="theme-toggle" class="icon-btn" aria-label="Cambiar tema">
-        <!-- Sun icon (for switching to light mode) -->
-        <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
-          <circle cx="12" cy="12" r="5"></circle>
-          <line x1="12" y1="1" x2="12" y2="3"></line>
-          <line x1="12" y1="21" x2="12" y2="23"></line>
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-          <line x1="1" y1="12" x2="3" y2="12"></line>
-          <line x1="21" y1="12" x2="23" y2="12"></line>
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-        </svg>
-        <!-- Moon icon (for switching to dark mode) -->
-        <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-        </svg>
-      </button>
+      <div class="header-actions" style="display: flex; gap: 5px;">
+        <button id="settings-toggle" class="icon-btn" aria-label="Ajustes">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+        <button id="theme-toggle" class="icon-btn" aria-label="Cambiar tema">
+          <!-- Sun icon (for switching to light mode) -->
+          <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <!-- Moon icon (for switching to dark mode) -->
+          <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+      </div>
     </header>
 
     <main>
+      <div id="settings-panel" class="settings-panel hidden">
+        <label for="daily-goal-input">Meta Diaria (Págs):</label>
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+          <input type="number" id="daily-goal-input" min="1" max="100" value="10">
+          <button id="save-settings-btn" class="btn-primary">Guardar</button>
+        </div>
+      </div>
+
       <div class="stats-card">
         <h2 class="stats-title">Hoy has leído</h2>
         <div class="pages-display">
@@ -39,15 +55,35 @@
           <span class="pages-label">Páginas</span>
         </div>
         <p class="words-detail"><span id="words-count">0</span> palabras (250/pág)</p>
+        
+        <button id="toggle-details-btn" class="text-btn">Ver Detalles 👇</button>
+        <div id="details-panel" class="details-panel hidden">
+          <div class="detail-row">
+            <span>👤 Tú (Prompts)</span>
+            <span id="user-words-count" class="detail-value">0</span>
+          </div>
+          <div class="detail-row">
+            <span>🤖 IA (Respuestas)</span>
+            <span id="ai-words-count" class="detail-value">0</span>
+          </div>
+        </div>
       </div>
 
       <div class="progress-section">
         <div class="progress-header">
-          <span>Meta diaria: 10 págs</span>
+          <span id="progress-goal-text">Meta diaria: 10 págs</span>
           <span id="progress-percent">0%</span>
         </div>
         <div class="progress-bar-container">
           <div id="progress-fill" class="progress-bar-fill"></div>
+        </div>
+      </div>
+
+      <div class="history-section">
+        <h3 class="history-title">Historial (Últimos 7 días)</h3>
+        <div id="history-list" class="history-list">
+          <!-- JS will populate this -->
+          <div class="history-empty">Aún no hay datos.</div>
         </div>
       </div>
     </main>

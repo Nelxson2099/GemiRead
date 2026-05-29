@@ -70,3 +70,38 @@ function checkWordDelta() {
 
 // Revisar la interfaz cada 3 segundos mientras estamos en la pestaña
 setInterval(checkWordDelta, 3000);
+
+// --- SEGUIMIENTO DE PALABRAS DEL USUARIO (PROMPTS) ---
+let lastTypedWords = 0;
+
+// Escuchar todo lo que se escribe en textareas o elementos editables
+document.addEventListener('input', (e) => {
+  const el = e.target;
+  if (el && (el.tagName === 'TEXTAREA' || el.isContentEditable || el.tagName === 'INPUT')) {
+    const text = el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ? el.value : (el.innerText || el.textContent);
+    lastTypedWords = countWords(text);
+  }
+});
+
+// Capturar cuando se envía con Enter
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    if (lastTypedWords > 0) {
+      chrome.runtime.sendMessage({ type: "ADD_USER_WORDS", wordCount: lastTypedWords });
+      lastTypedWords = 0;
+    }
+  }
+});
+
+// Capturar cuando se hace clic en un botón de enviar
+document.addEventListener('click', (e) => {
+  const el = e.target;
+  // Si hacemos clic en un botón (o SVG dentro de un botón) y teníamos texto escrito
+  if (el.closest('button') || el.closest('[role="button"]')) {
+    if (lastTypedWords > 0) {
+      // Usamos un pequeño timeout para asegurarnos de que el texto no se borró antes de que el evento input se disparara de nuevo
+      chrome.runtime.sendMessage({ type: "ADD_USER_WORDS", wordCount: lastTypedWords });
+      lastTypedWords = 0;
+    }
+  }
+});
