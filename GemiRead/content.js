@@ -5,9 +5,8 @@
 let lastTotalWords = 0;
 let lastKnownPath = window.location.pathname;
 
-// Ventana de tiempo durante la cual ignoramos los incrementos de palabras
-// Esto sirve para omitir la carga del historial al abrir un chat viejo.
-let ignoreUntil = Date.now() + 3500;
+let isAwaitingHistory = false;
+let lastPromptSentTime = 0; // Guardaremos la hora exacta en la que el usuario envía un prompt
 
 function countWords(text) {
   if (!text) return 0;
@@ -35,18 +34,17 @@ function checkWordDelta() {
   // 1. Detectar salto a otro chat (cambio de URL)
   if (window.location.pathname !== lastKnownPath) {
     lastKnownPath = window.location.pathname;
-    
-    // Bloqueamos el conteo durante 5 segundos para que cargue el historial del nuevo chat
-    ignoreUntil = Date.now() + 5000;
+    // Marcamos que estamos esperando que cargue el historial del nuevo chat
+    isAwaitingHistory = true;
   }
 
   // 2. Detectar si la pantalla se limpió (ej. borraron mensajes o skeleton loading)
   if (currentTotalWords < lastTotalWords) {
     lastTotalWords = currentTotalWords;
     
-    // Si las palabras cayeron a casi cero, se está recargando algo pesado, ignoramos por 3 segs
+    // Si las palabras cayeron a casi cero, es probable que se limpió la pantalla para cargar historial
     if (currentTotalWords < 50) {
-      ignoreUntil = Date.now() + 3000;
+      isAwaitingHistory = true;
     }
     return; // No hay incremento que sumar
   } 
@@ -56,9 +54,19 @@ function checkWordDelta() {
     const delta = currentTotalWords - lastTotalWords;
     lastTotalWords = currentTotalWords;
     
-    // Si estamos dentro de la ventana de bloqueo, ignoramos este incremento (es el historial cargando)
-    if (Date.now() < ignoreUntil) {
-      return;
+    if (isAwaitingHistory) {
+      isAwaitingHistory = false; // Ya atrapamos el primer salto
+      
+      // Heurística de Vibecoder: ¿Cómo sabemos si este salto de palabras es el historial viejo 
+      // o es la IA respondiendo súper rápido en un chat nuevo?
+      // Respuesta: Si el usuario acaba de mandar un prompt (hace menos de 60 segundos), 
+      // es generación de IA. Si no mandó nada y saltó, es historial.
+      const userJustPrompted = (Date.now() - lastPromptSentTime) < 60000;
+      
+      if (!userJustPrompted && delta > 50) {
+        // No acaba de enviar un prompt y saltaron muchas palabras = es historial viejo. ¡Ignóralo!
+        return; 
+      }
     }
     
     // Enviamos solo el incremento al cerebro (background.js)
@@ -86,6 +94,7 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) {
     if (lastTypedWords > 0) {
       chrome.runtime.sendMessage({ type: "ADD_USER_WORDS", wordCount: lastTypedWords });
+      lastPromptSentTime = Date.now(); // <-- MARCAMOS LA HORA DEL PROMPT
       lastTypedWords = 0;
     }
   }
@@ -97,8 +106,8 @@ document.addEventListener('click', (e) => {
   // Si hacemos clic en un botón (o SVG dentro de un botón) y teníamos texto escrito
   if (el.closest('button') || el.closest('[role="button"]')) {
     if (lastTypedWords > 0) {
-      // Usamos un pequeño timeout para asegurarnos de que el texto no se borró antes de que el evento input se disparara de nuevo
       chrome.runtime.sendMessage({ type: "ADD_USER_WORDS", wordCount: lastTypedWords });
+      lastPromptSentTime = Date.now(); // <-- MARCAMOS LA HORA DEL PROMPT
       lastTypedWords = 0;
     }
   }
