@@ -32,32 +32,31 @@ function getChatTotalWords() {
 function checkWordDelta() {
   const currentTotalWords = getChatTotalWords();
 
-  // Si cambia la URL, verificamos si es un chat nuevo o una continuación
+  // 1. Detectar salto a otro chat (cambio de URL)
   if (window.location.pathname !== lastKnownPath) {
     lastKnownPath = window.location.pathname;
     
-    // Al cambiar de chat (SPA), siempre extendemos la ventana de ignorar.
-    // Esto previene sumar el historial del nuevo chat.
+    // Bloqueamos el conteo durante 5 segundos para que cargue el historial del nuevo chat
     ignoreUntil = Date.now() + 5000;
   }
 
-  // Si el DOM tiene muy pocas palabras (chat vacío o cargando), extendemos la ventana de ignorar
-  if (currentTotalWords < 50) {
-    ignoreUntil = Date.now() + 3500;
-  }
-
-  // Si borramos el chat o la página se limpió sin cambiar de URL
+  // 2. Detectar si la pantalla se limpió (ej. borraron mensajes o skeleton loading)
   if (currentTotalWords < lastTotalWords) {
     lastTotalWords = currentTotalWords;
+    
+    // Si las palabras cayeron a casi cero, se está recargando algo pesado, ignoramos por 3 segs
     if (currentTotalWords < 50) {
-      ignoreUntil = Date.now() + 3500;
+      ignoreUntil = Date.now() + 3000;
     }
-  } else if (currentTotalWords > lastTotalWords) {
+    return; // No hay incremento que sumar
+  } 
+  
+  // 3. Procesar incrementos reales
+  if (currentTotalWords > lastTotalWords) {
     const delta = currentTotalWords - lastTotalWords;
     lastTotalWords = currentTotalWords;
     
-    // Si estamos dentro de la ventana de ignorar, no enviamos el delta
-    // Esto previene que se sume todo el historial de un chat viejo
+    // Si estamos dentro de la ventana de bloqueo, ignoramos este incremento (es el historial cargando)
     if (Date.now() < ignoreUntil) {
       return;
     }
