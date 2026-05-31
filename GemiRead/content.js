@@ -61,12 +61,6 @@ function checkWordDelta() {
     if (Date.now() < ignoreUntil) {
       return;
     }
-
-    // Defensa adicional: Si el incremento es excesivamente grande en un solo tick (3 segs),
-    // es muy probable que se trate de una carga tardía de historial en vez de generación real.
-    if (delta > 350) {
-      return;
-    }
     
     // Enviamos solo el incremento al cerebro (background.js)
     chrome.runtime.sendMessage({ type: "ADD_WORDS", wordCount: delta });
