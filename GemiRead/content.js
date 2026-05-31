@@ -36,10 +36,9 @@ function checkWordDelta() {
   if (window.location.pathname !== lastKnownPath) {
     lastKnownPath = window.location.pathname;
     
-    // Si la cantidad de palabras cayó drásticamente, asumimos que el chat se limpió (ej. navegamos a otro chat)
-    if (currentTotalWords < lastTotalWords * 0.5 || currentTotalWords < 50) {
-      ignoreUntil = Date.now() + 3500;
-    }
+    // Al cambiar de chat (SPA), siempre extendemos la ventana de ignorar.
+    // Esto previene sumar el historial del nuevo chat.
+    ignoreUntil = Date.now() + 5000;
   }
 
   // Si el DOM tiene muy pocas palabras (chat vacío o cargando), extendemos la ventana de ignorar
@@ -60,6 +59,12 @@ function checkWordDelta() {
     // Si estamos dentro de la ventana de ignorar, no enviamos el delta
     // Esto previene que se sume todo el historial de un chat viejo
     if (Date.now() < ignoreUntil) {
+      return;
+    }
+
+    // Defensa adicional: Si el incremento es excesivamente grande en un solo tick (3 segs),
+    // es muy probable que se trate de una carga tardía de historial en vez de generación real.
+    if (delta > 350) {
       return;
     }
     

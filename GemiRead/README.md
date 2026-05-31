@@ -46,6 +46,10 @@ Para instalar la extensión manualmente en tu navegador Chrome basado en Chromiu
 - `content.js`: Script inyectado en las páginas de las IAs. Usa un enfoque robusto para escanear el DOM periódicamente, calcular diferencias (deltas) de texto y enviarlas al cerebro.
 - `popup.html / css / js`: La interfaz de usuario gráfica de la extensión que muestra el progreso.
 
+## 📝 Changelog
+
+- **Fix:** Se corrigió un error ("bug") que sumaba erróneamente todo el historial de palabras al navegar entre diferentes chats sin recargar la página (SPA navigation). Ahora, al cambiar de conversación, GemiRead reinicia su marco de referencia y previene incrementos anómalos de palabras.
+
 ## 📝 Licencia
 
 Este proyecto es para uso personal y educativo.
