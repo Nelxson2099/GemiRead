@@ -2,7 +2,7 @@
 // Enfoque robusto para interfaces de chat LLM:
 // Calculamos el total de palabras periódicamente y enviamos la diferencia (delta) al background.
 
-let lastTotalWords = 0;
+let lastTotalWords = -1; // -1 indica que es la primera ejecución
 let lastKnownPath = window.location.pathname;
 
 let isAwaitingHistory = false;
@@ -16,20 +16,50 @@ function countWords(text) {
 }
 
 function getChatTotalWords() {
-  // Extraemos el texto principal de Gemini. 
-  // Clonamos para no afectar el DOM real.
-  const mainContent = document.querySelector('main') || document.body;
-  const clone = mainContent.cloneNode(true);
+  // 1. Intentar buscar los contenedores de mensajes específicos de las IAs
+  const messageSelectors = [
+    'model-response',       // Gemini
+    'user-query',           // Gemini
+    '.message-content',     // Gemini
+    '.markdown',            // ChatGPT
+    '.font-claude-message', // Claude
+    '.prose'                // Perplexity, Qwen, etc.
+  ].join(', ');
   
-  // Eliminamos elementos que no son lectura útil (scripts, menús ocultos, svgs)
-  const hiddenElements = clone.querySelectorAll('script, style, nav, header, [aria-hidden="true"], svg');
-  hiddenElements.forEach(el => el.remove());
+  const messages = document.querySelectorAll(messageSelectors);
+  let text = '';
+  
+  if (messages.length > 0) {
+    // Si encontramos mensajes, sumamos el texto de cada uno
+    messages.forEach(m => {
+      const clone = m.cloneNode(true);
+      const hiddenElements = clone.querySelectorAll('script, style, [aria-hidden="true"], svg, button');
+      hiddenElements.forEach(el => el.remove());
+      // Usamos textContent como respaldo seguro del cloneNode
+      text += (clone.innerText || clone.textContent) + ' ';
+    });
+  } else {
+    // 2. Fallback: Si no detecta los mensajes, agarra el <main> entero
+    const mainContent = document.querySelector('main') || document.body;
+    const clone = mainContent.cloneNode(true);
+    
+    // Eliminamos elementos que no son lectura útil
+    const hiddenElements = clone.querySelectorAll('script, style, nav, header, aside, footer, [aria-hidden="true"], svg, button, .visually-hidden');
+    hiddenElements.forEach(el => el.remove());
+    text = (clone.innerText || clone.textContent);
+  }
 
-  return countWords(clone.innerText || clone.textContent);
+  return countWords(text);
 }
 
 function checkWordDelta() {
   const currentTotalWords = getChatTotalWords();
+
+  // 0. Inicialización en la primera carga de la página
+  if (lastTotalWords === -1) {
+    lastTotalWords = currentTotalWords;
+    return;
+  }
 
   // 1. Detectar salto a otro chat (cambio de URL)
   if (window.location.pathname !== lastKnownPath) {

@@ -1,4 +1,4 @@
-const WORDS_PER_PAGE = 250;
+let wordsPerPage = 250;
 let dailyGoalPages = 10;
 let totalWordsGlobal = 0;
 let userWordsGlobal = 0;
@@ -10,7 +10,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const settingsPanel = document.getElementById('settings-panel');
   const saveSettingsBtn = document.getElementById('save-settings-btn');
   const dailyGoalInput = document.getElementById('daily-goal-input');
+  const wordsPerPageInput = document.getElementById('words-per-page-input');
   const progressGoalText = document.getElementById('progress-goal-text');
+  const wordsPerPageDisplay = document.getElementById('words-per-page-display');
   const toggleDetailsBtn = document.getElementById('toggle-details-btn');
   const detailsPanel = document.getElementById('details-panel');
   const historyList = document.getElementById('history-list');
@@ -27,15 +29,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const aiWordsCountEl = document.getElementById('ai-words-count');
 
   // Load state from sync storage
-  chrome.storage.sync.get(['theme', 'totalWords', 'userWords', 'dailyGoalPages', 'weeklyHistory'], (result) => {
+  chrome.storage.sync.get(['theme', 'totalWords', 'userWords', 'dailyGoalPages', 'wordsPerPage', 'weeklyHistory'], (result) => {
     // Theme
     const currentTheme = result.theme || 'dark';
     setTheme(currentTheme);
     
     // Settings
     dailyGoalPages = result.dailyGoalPages || 10;
+    wordsPerPage = result.wordsPerPage || 250;
+    
     dailyGoalInput.value = dailyGoalPages;
+    if (wordsPerPageInput) wordsPerPageInput.value = wordsPerPage;
+    
     progressGoalText.textContent = `Meta diaria: ${dailyGoalPages} págs`;
+    if (wordsPerPageDisplay) wordsPerPageDisplay.textContent = wordsPerPage;
     
     // Stats
     totalWordsGlobal = result.totalWords || 0;
@@ -60,12 +67,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
   saveSettingsBtn.addEventListener('click', () => {
     const newGoal = parseInt(dailyGoalInput.value, 10);
-    if (newGoal > 0) {
+    const newWordsPerPage = parseInt(wordsPerPageInput.value, 10);
+    
+    if (newGoal > 0 && newWordsPerPage > 0) {
       dailyGoalPages = newGoal;
-      chrome.storage.sync.set({ dailyGoalPages: newGoal });
+      wordsPerPage = newWordsPerPage;
+      
+      chrome.storage.sync.set({ 
+        dailyGoalPages: newGoal,
+        wordsPerPage: newWordsPerPage 
+      });
+      
       progressGoalText.textContent = `Meta diaria: ${dailyGoalPages} págs`;
+      if (wordsPerPageDisplay) wordsPerPageDisplay.textContent = wordsPerPage;
+      
       settingsPanel.classList.add('hidden');
       updateStats(totalWordsGlobal, userWordsGlobal);
+      
+      chrome.storage.sync.get(['weeklyHistory'], (result) => {
+        renderHistory(result.weeklyHistory || {});
+      });
     }
   });
 
@@ -97,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
     userWordsGlobal = userWords;
     
     const aiWords = Math.max(0, totalWords - userWords);
-    const pages = Math.floor(totalWords / WORDS_PER_PAGE);
+    const pages = Math.floor(totalWords / wordsPerPage);
     
     pagesCountEl.textContent = pages;
     wordsCountEl.textContent = totalWords.toLocaleString();
@@ -125,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     dates.forEach(date => {
       const data = historyObj[date];
-      const pages = Math.floor(data.totalWords / WORDS_PER_PAGE);
+      const pages = Math.floor(data.totalWords / wordsPerPage);
       
       const el = document.createElement('div');
       el.className = 'history-item';
