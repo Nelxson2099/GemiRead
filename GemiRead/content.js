@@ -142,15 +142,35 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// Capturar cuando se hace clic en un botón de enviar
+// Capturar cuando se hace clic en un botón (enviar, regenerar o chip)
 document.addEventListener('click', (e) => {
   const el = e.target;
-  // Si hacemos clic en un botón (o SVG dentro de un botón) y teníamos texto escrito
-  if (el.closest('button') || el.closest('[role="button"]')) {
+  const btn = el.closest('button') || el.closest('[role="button"]');
+  
+  if (btn) {
     if (lastTypedWords > 0) {
+      // Envío normal con texto tipeado
       chrome.runtime.sendMessage({ type: "ADD_USER_WORDS", wordCount: lastTypedWords });
       lastActivityTime = Date.now(); // <-- MARCAMOS LA HORA DEL PROMPT
       lastTypedWords = 0;
+    } else {
+      // Intento de capturar clics en "Regenerar" o "Chips de sugerencias" (sin texto previo)
+      const text = (btn.innerText || btn.textContent || '').toLowerCase().trim();
+      const ariaLabel = (btn.getAttribute('aria-label') || '').toLowerCase().trim();
+      
+      // 1. Detectar si es un botón de regenerar (en inglés o español)
+      const isRegenerate = ['regenerate', 'retry', 'regenerar', 'reintentar'].some(k => text.includes(k) || ariaLabel.includes(k));
+      
+      // 2. Detectar si es un chip de sugerencia (suelen ser botones con frases de > 2 palabras)
+      const isSuggestionChip = text.split(' ').length > 2 && text.length > 15;
+      
+      // 3. Asegurarnos de que no es un clic en el historial de la barra lateral 
+      // (para no confundirlo con cambiar de chat). Los historiales suelen estar en <nav>, <aside> o dentro de enlaces <a>
+      const isInSidebar = btn.closest('nav') || btn.closest('aside') || btn.closest('a');
+      
+      if (!isInSidebar && (isRegenerate || isSuggestionChip)) {
+        lastActivityTime = Date.now(); // Activamos el contador para atrapar la nueva respuesta!
+      }
     }
   }
 });
