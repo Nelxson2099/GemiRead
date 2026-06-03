@@ -18,7 +18,8 @@
         "https://copilot.microsoft.com/*",
         "https://chat.qwenlm.ai/*",
         "https://www.meta.ai/*",
-        "https://huggingface.co/chat/*"
+        "https://huggingface.co/chat/*",
+        "https://notebooklm.google.com/*"
       ],
       "js": ["content.js"]
     }
