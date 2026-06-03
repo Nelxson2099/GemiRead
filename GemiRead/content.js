@@ -5,8 +5,7 @@
 let lastTotalWords = -1; // -1 indica que es la primera ejecución
 let lastKnownPath = window.location.pathname;
 
-let isAwaitingHistory = false;
-let lastPromptSentTime = 0; // Guardaremos la hora exacta en la que el usuario envía un prompt
+let lastActivityTime = 0; // Guardaremos la hora exacta de la última actividad válida (prompt del usuario o streaming de IA)
 
 function countWords(text) {
   if (!text) return 0;
@@ -64,8 +63,15 @@ function checkWordDelta() {
   // 1. Detectar salto a otro chat (cambio de URL)
   if (window.location.pathname !== lastKnownPath) {
     lastKnownPath = window.location.pathname;
-    // Marcamos que estamos esperando que cargue el historial del nuevo chat
-    isAwaitingHistory = true;
+    
+    // Si la navegación ocurre sin que el usuario haya escrito un prompt recientemente (< 15s),
+    // es un salto a un chat del historial. Reseteamos la actividad para ignorar el historial.
+    if (Date.now() - lastActivityTime > 15000) {
+      lastActivityTime = 0; 
+    }
+    
+    lastTotalWords = currentTotalWords;
+    return;
   }
 
   // 2. Detectar si la pantalla se limpió (ej. borraron mensajes o skeleton loading)
@@ -74,7 +80,9 @@ function checkWordDelta() {
     
     // Si las palabras cayeron a casi cero, es probable que se limpió la pantalla para cargar historial
     if (currentTotalWords < 50) {
-      isAwaitingHistory = true;
+      if (Date.now() - lastActivityTime > 15000) {
+        lastActivityTime = 0;
+      }
     }
     return; // No hay incremento que sumar
   } 
@@ -84,20 +92,24 @@ function checkWordDelta() {
     const delta = currentTotalWords - lastTotalWords;
     lastTotalWords = currentTotalWords;
     
-    if (isAwaitingHistory) {
-      isAwaitingHistory = false; // Ya atrapamos el primer salto
-      
-      // Heurística de Vibecoder: ¿Cómo sabemos si este salto de palabras es el historial viejo 
-      // o es la IA respondiendo súper rápido en un chat nuevo?
-      // Respuesta: Si el usuario acaba de mandar un prompt (hace menos de 60 segundos), 
-      // es generación de IA. Si no mandó nada y saltó, es historial.
-      const userJustPrompted = (Date.now() - lastPromptSentTime) < 60000;
-      
-      if (!userJustPrompted && delta > 50) {
-        // No acaba de enviar un prompt y saltaron muchas palabras = es historial viejo. ¡Ignóralo!
-        return; 
-      }
+    if (lastActivityTime === 0) {
+      // No hay un prompt reciente que justifique generación de palabras. Es historial cargándose.
+      return;
     }
+    
+    const timeSinceLastActivity = Date.now() - lastActivityTime;
+    
+    // Si ha pasado demasiado tiempo desde la última actividad (ej. 5 minutos - 300000ms),
+    // asumimos que la generación ya debió haber terminado y cualquier incremento es anómalo
+    // (ej. recargando la página entera con F5 sin cambiar la URL).
+    // Eliminamos el límite de cantidad de palabras porque modelos ultra rápidos 
+    // (como Gemini Flash) pueden generar miles de palabras casi de golpe.
+    if (timeSinceLastActivity > 300000) {
+      return; 
+    }
+    
+    // Es un incremento válido de streaming. Actualizamos la actividad para encadenar
+    lastActivityTime = Date.now();
     
     // Enviamos solo el incremento al cerebro (background.js)
     chrome.runtime.sendMessage({ type: "ADD_WORDS", wordCount: delta });
@@ -124,7 +136,7 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) {
     if (lastTypedWords > 0) {
       chrome.runtime.sendMessage({ type: "ADD_USER_WORDS", wordCount: lastTypedWords });
-      lastPromptSentTime = Date.now(); // <-- MARCAMOS LA HORA DEL PROMPT
+      lastActivityTime = Date.now(); // <-- MARCAMOS LA HORA DEL PROMPT
       lastTypedWords = 0;
     }
   }
@@ -137,7 +149,7 @@ document.addEventListener('click', (e) => {
   if (el.closest('button') || el.closest('[role="button"]')) {
     if (lastTypedWords > 0) {
       chrome.runtime.sendMessage({ type: "ADD_USER_WORDS", wordCount: lastTypedWords });
-      lastPromptSentTime = Date.now(); // <-- MARCAMOS LA HORA DEL PROMPT
+      lastActivityTime = Date.now(); // <-- MARCAMOS LA HORA DEL PROMPT
       lastTypedWords = 0;
     }
   }
